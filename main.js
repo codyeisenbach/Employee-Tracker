@@ -45,31 +45,31 @@ function runTracker() {
         break;
 
       case "View All Employees By Department":
-        empByDepartment();
+        empDepartment();
         break;
 
       case "View All Employees by Manager":
-        rangeSearch();
+        empManager();
         break;
 
       case "Add Employee":
-        songSearch();
+        addEmployee();
         break;
       
       case "Remove Employee":
-        songSearch();
+        removeEmployee();
         break;
 
       case "Update Employee Role":
-        songSearch();
+        updateEmpRole();
         break;
 
-      case "Update Employee Role":
-        songSearch();
+      case "Update Employee Manager":
+        updateEmpManager();
         break;
 
-      case "Update Employee Role":
-        songSearch();
+      case "View All Roles":
+        ViewAllRoles();
         break;
         
       case "exit":
@@ -79,105 +79,43 @@ function runTracker() {
     });
 }
 
-function artistSearch() {
-  inquirer
-    .prompt({
-      name: "artist",
-      type: "input",
-      message: "What artist would you like to search for?"
-    })
-    .then(function(answer) {
-      var query = "SELECT position, song, year FROM top5000 WHERE ?";
-      connection.query(query, { artist: answer.artist }, function(err, res) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log("Position: " + res[i].position + " || Song: " + res[i].song + " || Year: " + res[i].year);
-        }
-        runSearch();
-      });
-    });
-}
-
 function allEmployees() {
-  var query = "SELECT * FROM employees";
-  connection.query(query, function(err, res) {
+  console.log("Selecting all employees...\n");
+  connection.query("SELECT * FROM employees", function(err, res) {
     if (err) throw err;
-    for (var i = 0; i < res.length; i++) {
-      console.log(res[i]);
-    }
-    runSearch();
+    // Log all results of the SELECT statement
+    console.log(res);
+    connection.end();
   });
 }
 
-function rangeSearch() {
+function addEmployee() {
   inquirer
-    .prompt([
-      {
-        name: "start",
-        type: "input",
-        message: "Enter starting position: ",
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
-          }
-          return false;
+  .prompt([
+    {
+      name: 'firstname',
+      message: 'Enter Employee First Name',
+    },
+    {
+      name: 'lastname',
+      message: 'Enter Employee Last Name',
+    }
+  ])
+  .then(function(answer) {
+    var query = connection.query(
+      "UPDATE products SET ? WHERE ?",
+      [
+        {
+          first_name: answer.firstname
+        },
+        {
+          last_name: answer.lastname
         }
-      },
-      {
-        name: "end",
-        type: "input",
-        message: "Enter ending position: ",
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
-          }
-          return false;
-        }
-      }
-    ])
-    .then(function(answer) {
-      var query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
-      connection.query(query, [answer.start, answer.end], function(err, res) {
+      ],
+      function(err, res) {
         if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log(
-            "Position: " +
-              res[i].position +
-              " || Song: " +
-              res[i].song +
-              " || Artist: " +
-              res[i].artist +
-              " || Year: " +
-              res[i].year
-          );
-        }
-        runSearch();
-      });
-    });
-}
-
-function songSearch() {
-  inquirer
-    .prompt({
-      name: "song",
-      type: "input",
-      message: "What song would you like to look for?"
-    })
-    .then(function(answer) {
-      console.log(answer.song);
-      connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function(err, res) {
-        if (err) throw err;
-        console.log(
-          "Position: " +
-            res[0].position +
-            " || Song: " +
-            res[0].song +
-            " || Artist: " +
-            res[0].artist +
-            " || Year: " +
-            res[0].year
-        );
-        runSearch();
-      });
-    });
-}
+        console.log(res.affectedRows + " products updated!\n");
+      })
+      runTracker();
+  })
+};
